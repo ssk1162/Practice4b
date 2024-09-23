@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "CUnitTableDlg.h"
 
 // CPractice4bDlg 대화 상자
 class CPractice4bDlg : public CDialogEx
@@ -43,4 +43,10 @@ public:
 	afx_msg void OnRadioLength();
 	afx_msg void OnRadioWeight();
 	void ComputeUnitValue();
+	afx_msg void OnChangeEditPresentValue();
+	afx_msg void OnSelchangeListPresentUnit();
+	afx_msg void OnSelchangeListChangeUnit();
+	bool m_bUnitViewed;
+	CUnitTableDlg m_dlgUnitTable;
+	afx_msg void OnClickedButtonUnitView();
 };

@@ -53,12 +53,13 @@ END_MESSAGE_MAP()
 CPractice4bDlg::CPractice4bDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_PRACTICE4B_DIALOG, pParent)
 	, m_dPresentValue(0)
-	, m_dChangeValue(_T(""))
+	, m_dChangeValue(0)
 	, m_strPresentUnit(_T(""))
 	, m_strChangeUnit(_T(""))
 	, m_strUnit(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_bUnitViewed = false;
 }
 
 void CPractice4bDlg::DoDataExchange(CDataExchange* pDX)
@@ -79,6 +80,10 @@ BEGIN_MESSAGE_MAP(CPractice4bDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_COMMAND(IDC_RADIO_LENGTH, &CPractice4bDlg::OnRadioLength)
 	ON_COMMAND(IDC_RADIO_WEIGHT, &CPractice4bDlg::OnRadioWeight)
+	ON_EN_CHANGE(IDC_EDIT_PRESENT_VALUE, &CPractice4bDlg::OnChangeEditPresentValue)
+	ON_LBN_SELCHANGE(IDC_LIST_PRESENT_UNIT, &CPractice4bDlg::OnSelchangeListPresentUnit)
+	ON_LBN_SELCHANGE(IDC_LIST_CHANGE_UNIT, &CPractice4bDlg::OnSelchangeListChangeUnit)
+	ON_BN_CLICKED(IDC_BUTTON_UNIT_VIEW, &CPractice4bDlg::OnClickedButtonUnitView)
 END_MESSAGE_MAP()
 
 
@@ -229,6 +234,196 @@ void CPractice4bDlg::ComputeUnitValue()
 {
 	// TODO: 여기에 구현 코드 추가.
 
+	UpdateData(TRUE); // Edit Control부터 입력한 값을 가져온다
+	int index1, index2;
+	index1 = m_listPresentUnit.GetCurSel();
+	index2 = m_listChangeUnit.GetCurSel();
+	m_dChangeValue = m_dPresentValue;
 
+	switch (m_nUnitSelect)
+	{
+	case 1:
+		if (index1 == 0 && index2 == 1)
+			m_dChangeValue = m_dPresentValue * 39.370079; // 미터에서 인치
+		if (index1 == 0 && index2 == 2)
+			m_dChangeValue = m_dPresentValue * 1.093613; // 미터에서 야드
+
+		if (index1 == 1 && index2 == 0)
+			m_dChangeValue = m_dPresentValue * 0.0254; // 인치에서 미터
+		if (index1 == 1 && index2 == 2)
+			m_dChangeValue = m_dPresentValue * 0.027778; // 인치에서 야드
+		
+		if (index1 == 2 && index2 == 0)
+			m_dChangeValue = m_dPresentValue * 0.9144; // 야드에서 미터
+		if (index1 == 2 && index2 == 1)
+			m_dChangeValue = m_dPresentValue * 36; // 야드에서 인치
+		break;
+	
+	case 2:
+		if (index1 == 0 && index2 == 1)
+			m_dChangeValue = m_dPresentValue * 0.035274; // 그램에서 온즈
+		if (index1 == 0 && index2 == 2)
+			m_dChangeValue = m_dPresentValue * 0.002205; // 그램에서 파운드
+
+		if (index1 == 1 && index2 == 0)
+			m_dChangeValue = m_dPresentValue * 28.349523; // 온즈에서 그램
+		if (index1 == 1 && index2 == 2)
+			m_dChangeValue = m_dPresentValue * 0.0625; // 온즈에서 파운드
+
+		if (index1 == 2 && index2 == 0)
+			m_dChangeValue = m_dPresentValue * 453.59237; // 파운드에서 그램
+		if (index1 == 2 && index2 == 1)
+			m_dChangeValue = m_dPresentValue * 16; // 파운드에서 온즈
+		break;
+
+	default:
+		AfxMessageBox(_T("변환하고자 하는 단위를 라디오 버튼에서 선택"));
+	}
+
+	UpdateData(FALSE); // Edit Control부터 결과 값을 보낸다
+}
+
+
+void CPractice4bDlg::OnChangeEditPresentValue()
+{
+	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
+	// CDialogEx::OnInitDialog() 함수를 재지정 
+	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
+	// 이 알림 메시지를 보내지 않습니다.
+
+	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	ComputeUnitValue();
+
+}
+
+
+void CPractice4bDlg::OnSelchangeListPresentUnit()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	int index1, index2;
+	index1 = m_listPresentUnit.GetCurSel();
+	index2 = m_listChangeUnit.GetCurSel();
+	CString strPresentUnit, strChangeUnit;
+	m_strUnit.Empty();
+
+	if (m_nUnitSelect == 1)
+	{
+		switch (index1)
+		{
+		case 0 :
+			m_strPresentUnit = _T("m");
+			break;
+		case 1 :
+			m_strPresentUnit = _T("in");
+			break;
+		case 2 :
+			m_strPresentUnit = _T("yd");
+			break;
+		}
+	}
+	else if (m_nUnitSelect == 2)
+	{
+		switch (index1)
+		{
+		case 0:
+			m_strPresentUnit = _T("g");
+			break;
+		case 1:
+			m_strPresentUnit = _T("oz");
+			break;
+		case 2:
+			m_strPresentUnit = _T("lb");
+			break;
+		}
+	}
+	m_listPresentUnit.GetText(index1, strPresentUnit);
+	m_listChangeUnit.GetText(index2, strChangeUnit);
+	m_strUnit = m_strUnit + strPresentUnit + _T("--> ") + strChangeUnit;
+
+	UpdateData(FALSE);
+	ComputeUnitValue();
+
+}
+
+
+void CPractice4bDlg::OnSelchangeListChangeUnit()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	int index1, index2;
+	index1 = m_listPresentUnit.GetCurSel();
+	index2 = m_listChangeUnit.GetCurSel();
+	CString strPresentUnit, strChangeUnit;
+	m_strUnit.Empty();
+
+	if (m_nUnitSelect == 1)
+	{
+		switch (index1)
+		{
+		case 0:
+			m_strChangeUnit = _T("m");
+			break;
+		case 1:
+			m_strChangeUnit = _T("in");
+			break;
+		case 2:
+			m_strChangeUnit = _T("yd");
+			break;
+		}
+	}
+	else if (m_nUnitSelect == 2)
+	{
+		switch (index1)
+		{
+		case 0:
+			m_strChangeUnit = _T("g");
+			break;
+		case 1:
+			m_strChangeUnit = _T("oz");
+			break;
+		case 2:
+			m_strChangeUnit = _T("lb");
+			break;
+		}
+	}
+	m_listPresentUnit.GetText(index1, strPresentUnit);
+	m_listChangeUnit.GetText(index2, strChangeUnit);
+	m_strUnit = m_strUnit + strPresentUnit + _T("--> ") + strChangeUnit;
+
+	UpdateData(FALSE);
+	ComputeUnitValue();
+
+}
+
+
+void CPractice4bDlg::OnClickedButtonUnitView()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	if (!m_bUnitViewed)
+	{
+		m_dlgUnitTable.Create(IDD_DIALOG_UNIT_TABLE, this);
+
+		CRect rectMain, rectUnitTable;
+		GetClientRect(&rectMain);
+
+		// 윈도우 크기를 알기 위한 함수
+		m_dlgUnitTable.GetWindowRect(&rectUnitTable);
+		// 윈도우의 위치, 크기를 변경하는 함수
+		m_dlgUnitTable.MoveWindow(rectMain.right, rectMain.top, rectUnitTable.Width(), rectUnitTable.Height());
+
+		// 윈도우 화면 보일 때 설정
+		m_dlgUnitTable.ShowWindow(SW_SHOW);
+		m_bUnitViewed = TRUE;
+	}
+	else
+	{
+		m_dlgUnitTable.ShowWindow(SW_HIDE);
+		m_dlgUnitTable.DestroyWindow();
+		m_bUnitViewed = FALSE;
+
+	}
 
 }
